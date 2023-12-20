@@ -55,68 +55,62 @@ class _OrdersState extends State<Orders> {
     var id = prefs.getString("Id");
     var matchingOrder = order_list.firstWhere((order) => order['id'] == order_ID);
 
-    if (matchingOrder != null) {
-      // Order found, extract product JSON
-      var productJson = matchingOrder['product_json'];
-      // Decode the product_json
-      List<dynamic> decodedProductJson = json.decode(productJson);
-      // Create a list to store the new JSON structures
-      List<Map<String, dynamic>> newJsonList = [];
-      // Iterate over each index in the decoded list
-      for (int j = 0; j < decodedProductJson.length; j++) {
-        var product = decodedProductJson[j];
-        var p_id = product['p_id'];
-        var product_name = product['product_name'];
-        var quantity = product['quantity'];
-        // Create a new JSON structure
-        Map<String, dynamic> newJson = {
-          'p_id': p_id,
-          'product_name': product_name,
-          'quantity': quantity,
-          'quantity_rec': '${quantity_input[j]}',
-          'quantity_less': '${quantity_less[j]}',
-        };
-        // Add the new JSON structure to the list
-        newJsonList.add(newJson);
-      }
-      print("$newJsonList,,,,,,,$selectedImage");
-      var request = http.MultipartRequest('POST', Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_dealer_dip_shortage.php'));
-      request.fields.addAll({
-        'order_id': '$order_ID',
-        'dealer_id': '$id',
-        'row_id': '',
-        'product_json': '$newJsonList',
-      });
-
-      request.files.add(await http.MultipartFile.fromPath('file', selectedImage!.path));
-      http.StreamedResponse response = await request.send();
-
-        if (response.statusCode == 200) {
-          var ret = await response.stream.bytesToString();
-          if (ret == '1') {
-            Fluttertoast.showToast(
-                msg: 'Shortage Report Submitted',
-                backgroundColor: Colors.greenAccent,
-                textColor: Colors.black);
-            Navigator.of(context as BuildContext).push(MaterialPageRoute(builder: (context) => Orders()));
-            selectedImage = null;
-            imageNameController.clear();
-          } else {
-            Fluttertoast.showToast(
-                msg: 'Shortage Report Not Submitted',
-                backgroundColor: Colors.redAccent,
-                textColor: Colors.white);
-          }
-          print(ret);
-        } else {
-          print(response.reasonPhrase);
-        }
-    } else {
-      // Order not found
-      print('Order with ID $order_ID not found.');
-      return {};
+    // Order found, extract product JSON
+    var productJson = matchingOrder['product_json'];
+    // Decode the product_json
+    List<dynamic> decodedProductJson = json.decode(productJson);
+    // Create a list to store the new JSON structures
+    List<Map<String, dynamic>> newJsonList = [];
+    // Iterate over each index in the decoded list
+    for (int j = 0; j < decodedProductJson.length; j++) {
+      var product = decodedProductJson[j];
+      var p_id = product['p_id'];
+      var product_name = product['product_name'];
+      var quantity = product['quantity'];
+      // Create a new JSON structure
+      Map<String, dynamic> newJson = {
+        'p_id': p_id,
+        'product_name': product_name,
+        'quantity': quantity,
+        'quantity_rec': '${quantity_input[j]}',
+        'quantity_less': '${quantity_less[j]}',
+      };
+      // Add the new JSON structure to the list
+      newJsonList.add(newJson);
     }
-  }
+    print("$newJsonList,,,,,,,$selectedImage");
+    var request = http.MultipartRequest('POST', Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_dealer_dip_shortage.php'));
+    request.fields.addAll({
+      'order_id': '$order_ID',
+      'dealer_id': '$id',
+      'row_id': '',
+      'product_json': '$newJsonList',
+    });
+
+    request.files.add(await http.MultipartFile.fromPath('file', selectedImage!.path));
+    http.StreamedResponse response = await request.send();
+
+      if (response.statusCode == 200) {
+        var ret = await response.stream.bytesToString();
+        if (ret == '1') {
+          Fluttertoast.showToast(
+              msg: 'Shortage Report Submitted',
+              backgroundColor: Colors.greenAccent,
+              textColor: Colors.black);
+          Navigator.of(context as BuildContext).push(MaterialPageRoute(builder: (context) => Orders()));
+          selectedImage = null;
+          imageNameController.clear();
+        } else {
+          Fluttertoast.showToast(
+              msg: 'Shortage Report Not Submitted',
+              backgroundColor: Colors.redAccent,
+              textColor: Colors.white);
+        }
+        print(ret);
+      } else {
+        print(response.reasonPhrase);
+      }
+    }
   Future<void> _pickImage(ImageSource source) async {
     try {
       final pickedFile = await ImagePicker().pickImage(source: source);
@@ -393,23 +387,16 @@ class _OrdersState extends State<Orders> {
                                   .where((order) =>
                                       order['id'].contains(searchQuery))
                                   .toList();
-                            } else {
-                              filteredData = order_list;
-                            }
+                            } else {filteredData = order_list;}
                             final orderNumber = filteredData[index2]["id"];
-                            final totalAmount =
-                                filteredData[index2]['total_amount'];
+                            final totalAmount = filteredData[index2]['total_amount'];
                             final type = filteredData[index2]['type'];
-                            final created_at =
-                                filteredData[index2]['created_at'];
-                            final productJsonString =
-                                filteredData[index2]["product_json"];
+                            final created_at = filteredData[index2]['created_at'];
+                            final productJsonString = filteredData[index2]["product_json"];
                             final status = filteredData[index2]["status"];
-                            final current_status =
-                                filteredData[index2]["current_status"];
+                            final current_status = filteredData[index2]["current_status"];
                             final List<Map<String, dynamic>> products =
-                                List<Map<String, dynamic>>.from(
-                                    json.decode(productJsonString));
+                                List<Map<String, dynamic>>.from(json.decode(productJsonString));
                             var c1;
                             print("Khan-----> $products");
                             if (status == '0') {
