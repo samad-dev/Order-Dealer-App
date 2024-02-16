@@ -68,6 +68,7 @@ class _HomeScreenState extends State<Home> {
   late List<BarChartGroupData> showingBarGroups;
   int _selectedIndex = 0;
   int touchedGroupIndex = -1;
+  String Pumpname ='';
   @override
   void initState() {
     super.initState();
@@ -109,8 +110,11 @@ class _HomeScreenState extends State<Home> {
       if (response.statusCode == 200) {
         final List<dynamic> jsonResponse = json.decode(response.body);
         List<Map<String, dynamic>> data = jsonResponse.cast<Map<String, dynamic>>();
+        print("hellow $id");
         account =  data[0]["acount"];
+        Pumpname = data[0]["name"];
         prefs.setString("account", data[0]["acount"].toString());
+        print("$account and1 ${data[0]['acount']}");
         return data;
       } else {
         // Handle the error, e.g., show an error message
@@ -147,7 +151,6 @@ class _HomeScreenState extends State<Home> {
       return null;
     }
   }
-
   Future<void> fetchDataAndUpdateChart() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var id = prefs.getString("Id");
@@ -232,7 +235,7 @@ class _HomeScreenState extends State<Home> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  '$dealershipName',
+                                  '$Pumpname',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     color: Color(0xffffffff),
@@ -243,7 +246,7 @@ class _HomeScreenState extends State<Home> {
                                   maxLines: 1,
                                 ),
                                 Text(
-                                  '$sap_no',
+                                  sap_no != " " ? '$sap_no' : '$dealershipName',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     color: Color(0xffffffff),

@@ -21,6 +21,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 
+import '../utils/constants.dart';
+
 class Orders extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
   final Color leftBarColor = Color(0xFFCB6600);
@@ -275,11 +277,11 @@ class _OrdersState extends State<Orders> {
         backgroundColor: Color(0xffffffff),
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
+          backgroundColor: Constants.primary_color,
           elevation: 10,
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios), // Use the back arrow icon
-            color: Color(0xff12283D),
+            color: Colors.white ,
             onPressed: () {
               Navigator.of(context)
                   .pop(); // Pop the current page when the back button is pressed
@@ -290,7 +292,7 @@ class _OrdersState extends State<Orders> {
             style: GoogleFonts.montserrat(
                 fontWeight: FontWeight.w700,
                 fontStyle: FontStyle.normal,
-                color: Color(0xff12283D),
+                color: Colors.white,
                 fontSize: 16),
           ),
           actions: [
@@ -307,6 +309,7 @@ class _OrdersState extends State<Orders> {
                   // <-- Icon
                   Icons.add,
                   size: 24.0,
+                  color: Colors.white,
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xff3B8D5A), // Background color
@@ -407,6 +410,9 @@ class _OrdersState extends State<Orders> {
                               c1 = 0xff358e58;
                             } else if (status == "3") {
                               c1 = 0xffe02c2f;
+                            }
+                            else{
+                              c1 =0xff339966;
                             }
                             int index = 0;
                             Color backgroundColor = Colors.white;
@@ -661,15 +667,6 @@ class _OrdersState extends State<Orders> {
                                                     ),
                                                   ),
                                                 ),
-                                                /*Text(
-                                                  'Waiting For Approval',
-                                                  style: GoogleFonts.montserrat(
-                                                    fontWeight: FontWeight.w300,
-                                                    fontStyle: FontStyle.normal,
-                                                    color: Color(0xff9b9b9b),
-                                                    fontSize: 12,
-                                                  ),
-                                                ),*/
                                                 SizedBox(
                                                   height: 3,
                                                 ),

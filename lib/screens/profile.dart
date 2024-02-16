@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/complaint_list.dart';
 import 'package:hascol_dealer/screens/home.dart';
+import 'package:hascol_dealer/screens/inspection_reports.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../main.dart';
+import '../utils/constants.dart';
 
 class Profile extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -44,14 +46,14 @@ class _ProfileState extends State<Profile> {
         backgroundColor: Color(0xffffffff),
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
+          backgroundColor: Constants.primary_color,
           elevation: 10,
           title: Text(
             'Profile',
             style: GoogleFonts.montserrat(
                 fontWeight: FontWeight.w700,
                 fontStyle: FontStyle.normal,
-                color: Color(0xff1F41BB),
+                color: Colors.white,
                 fontSize: 16),
           ),
         ),
@@ -149,6 +151,29 @@ class _ProfileState extends State<Profile> {
                                   SizedBox(width: 5,),
                                   Text(
                                     'Privacy Policy',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Color(0xff000000),
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FontStyle.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: GestureDetector(
+                              onTap: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => InspectionReports()),);
+                              },
+                              child: Row(
+                                children: [
+                                  Image.asset("assets/images/business-report.png", width: 35,),
+                                  SizedBox(width: 5,),
+                                  Text(
+                                    'Inspection Reports',
                                     style: GoogleFonts.poppins(
                                       fontSize: 14,
                                       color: Color(0xff000000),

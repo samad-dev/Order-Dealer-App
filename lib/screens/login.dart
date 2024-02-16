@@ -19,6 +19,7 @@ class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   user? _user;
+  bool _obscurePassword = true;
 
   Future<void> _login(BuildContext context) async {
     final email = _emailController.text;
@@ -46,24 +47,49 @@ class _LoginState extends State<Login> {
       final jsons = json.decode(response.body);
 
       if (jsons.isNotEmpty) {
-        final prefs = await SharedPreferences.getInstance();
-        prefs.setBool('isLoggedIn', true);
-        print(jsons[0]['name']);
-        prefs.setString("Id", jsons[0]["id"]);
-        prefs.setString("name", jsons[0]["name"].toString());
-        prefs.setString("contact", jsons[0]["contact"].toString());
-        prefs.setString("email", jsons[0]["email"].toString());
-        prefs.setString("location", jsons[0]["location"].toString());
-        prefs.setString("co_ordinates", jsons[0]["co_ordinates"].toString());
-        prefs.setString("housekeeping", jsons[0]["housekeeping"].toString());
-        prefs.setString("no_lorries", jsons[0]["no_lorries"].toString());
-        prefs.setString("type", jsons[0]["type"].toString());
-        prefs.setString("banner", jsons[0]["banner"].toString());
-        prefs.setString("logo", jsons[0]["logo"].toString());
-        prefs.setString("indent_price", jsons[0]["indent_price"].toString());
-        prefs.setString("Nozel_price", jsons[0]["Nozel_price"].toString());
-        prefs.setString("sap_no", jsons[0]["sap_no"].toString());
-        Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Home(),),);
+        if(jsons[0]["privilege"]== "Dealer"){
+          final prefs = await SharedPreferences.getInstance();
+          prefs.setBool('isLoggedIn', true);
+          print(jsons[0]['name']);
+          prefs.setString("Id", jsons[0]["id"]);
+          prefs.setString("name", jsons[0]["name"].toString());
+          prefs.setString("contact", jsons[0]["contact"].toString());
+          prefs.setString("email", jsons[0]["email"].toString());
+          prefs.setString("location", jsons[0]["location"].toString());
+          prefs.setString("co_ordinates", jsons[0]["co_ordinates"].toString());
+          prefs.setString("housekeeping", jsons[0]["housekeeping"].toString());
+          prefs.setString("no_lorries", jsons[0]["no_lorries"].toString());
+          prefs.setString("type", jsons[0]["type"].toString());
+          prefs.setString("banner", jsons[0]["banner"].toString());
+          prefs.setString("logo", jsons[0]["logo"].toString());
+          prefs.setString("indent_price", jsons[0]["indent_price"].toString());
+          prefs.setString("Nozel_price", jsons[0]["Nozel_price"].toString());
+          prefs.setString("sap_no", jsons[0]["sap_no"].toString());
+          prefs.setString("acount", jsons[0]["acount"].toString());
+          Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Home(),),);
+        }else if(jsons[0]["privilege"]=="Manager"){
+          final prefs = await SharedPreferences.getInstance();
+          prefs.setBool('isLoggedIn', true);
+          print(jsons[0]['name']);
+          prefs.setString("Id", jsons[0]["parent_id"]);
+          prefs.setString("name", jsons[0]["name"].toString());
+          prefs.setString("contact", jsons[0]["contact"].toString());
+          prefs.setString("email", jsons[0]["email"].toString());
+          prefs.setString("location", jsons[0]["location"].toString());
+          prefs.setString("co_ordinates", jsons[0]["co_ordinates"].toString());
+          prefs.setString("housekeeping", jsons[0]["housekeeping"].toString());
+          prefs.setString("no_lorries", jsons[0]["no_lorries"].toString());
+          prefs.setString("type", jsons[0]["type"].toString());
+          prefs.setString("banner", jsons[0]["banner"].toString());
+          prefs.setString("logo", jsons[0]["logo"].toString());
+          prefs.setString("indent_price", jsons[0]["indent_price"].toString());
+          prefs.setString("Nozel_price", jsons[0]["Nozel_price"].toString());
+          prefs.setString("sap_no", jsons[0]["sap_no"].toString());
+          prefs.setString("acount", jsons[0]["acount"].toString());
+          Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Home(),),);
+        }
+
+
       } else {
         // Incorrect credentials
         Fluttertoast.showToast(
@@ -114,60 +140,6 @@ class _LoginState extends State<Login> {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    /*
-                    Container(
-                      child: Text(
-                        'Login Here',
-                        style: GoogleFonts.poppins(
-                          textStyle: Theme
-                              .of(context)
-                              .textTheme
-                              .displayLarge,
-                          fontSize: 22,
-                          color: Color(0xff1F41BB),
-                          fontWeight: FontWeight.w700,
-                          fontStyle: FontStyle.normal,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Container(
-                      child: Text(
-                        'Welcome Back You`ve',
-                        style: GoogleFonts.poppins(
-                          textStyle: Theme
-                              .of(context)
-                              .textTheme
-                              .displayLarge,
-                          fontSize: 14,
-                          color: Color(0xff000000),
-                          fontWeight: FontWeight.w700,
-                          fontStyle: FontStyle.normal,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      child: Text(
-                        'been missed!',
-                        style: GoogleFonts.poppins(
-                          textStyle: Theme
-                              .of(context)
-                              .textTheme
-                              .displayLarge,
-                          fontSize: 14,
-                          color: Color(0xff000000),
-                          fontWeight: FontWeight.w700,
-                          fontStyle: FontStyle.normal,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-
-                     */
                     Container(
                       padding: EdgeInsets.only(left: 38, right: 38),
                       child: TextField(
@@ -217,10 +189,10 @@ class _LoginState extends State<Login> {
                           fontSize: 16,
                           fontStyle: FontStyle.normal,
                         ),
-                        obscureText: true,
+                        obscureText: _obscurePassword, // Use the state variable
                         decoration: InputDecoration(
                           hintText: 'Enter Password',
-                          hintStyle:GoogleFonts.raleway(
+                          hintStyle: GoogleFonts.raleway(
                             color: Color(0xff9d9d9d),
                             fontSize: 16,
                           ),
@@ -230,19 +202,30 @@ class _LoginState extends State<Login> {
                             color: Color(0xffffffff),
                             fontSize: 16,
                           ),
-                          contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding as needed
+                          contentPadding: EdgeInsets.symmetric(vertical: 15),
                           enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(width:2,color: Colors.grey),
+                            borderSide: BorderSide(width: 2, color: Colors.grey),
                           ),
                           focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(width:2,color: Colors.green.shade700), // Color of the border
+                            borderSide:
+                            BorderSide(width: 2, color: Colors.green.shade700),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.white,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
                           ),
                         ),
                       ),
                     ),
-
-
-
                     SizedBox(
                       height: 20,
                     ),
@@ -287,6 +270,7 @@ class _LoginState extends State<Login> {
                                     fontWeight: FontWeight.w700,
                                     fontStyle: FontStyle.normal,
                                     fontSize: 16,
+                                    color: Colors.white
                                   ),
                                 ),
                               ),

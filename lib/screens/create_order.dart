@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:dropdown_plus/dropdown_plus.dart';
 
+import '../utils/constants.dart';
 import 'order_list.dart';
 
 class Create_Order extends StatefulWidget {
@@ -90,6 +91,7 @@ class _CreateOrderState extends State<Create_Order> {
           'total': '${sum}',
           'product': '${jsonString}',
           'legder_balance': '${legder_balance}',
+          'user_id': '${id}',
         });
         http.StreamedResponse response = await request.send();
         if (response.statusCode == 200) {
@@ -130,6 +132,7 @@ class _CreateOrderState extends State<Create_Order> {
         'total': '${sum}',
         'product': '${jsonString}',
         'legder_balance': '$legder_balance',
+        'user_id': '${id}',
       });
       http.StreamedResponse response = await request.send();
       if (response.statusCode == 200) {
@@ -222,7 +225,7 @@ class _CreateOrderState extends State<Create_Order> {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('EEE d MMM kk:mm:ss').format(now);
     return Scaffold(
-      backgroundColor: Color(0xffffffff),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         titleSpacing: 0,
         leading: IconButton(
@@ -233,16 +236,16 @@ class _CreateOrderState extends State<Create_Order> {
           //replace with our own icon data.
         ),
         iconTheme: IconThemeData(
-          color: Colors.black, //change your color here
+          color: Colors.white, //change your color here
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Constants.primary_color,
         elevation: 10,
         title: Text(
           'Create Order',
           style: GoogleFonts.montserrat(
               fontWeight: FontWeight.w700,
               fontStyle: FontStyle.normal,
-              color: Color(0xff12283D),
+              color: Colors.white,
               fontSize: 16),
         ),
       ),
@@ -510,7 +513,7 @@ class _CreateOrderState extends State<Create_Order> {
                             Container(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                hsdtValues[index].toString(),
+                                hsdtValues[index].toStringAsFixed(2),
                                 style: TextStyle(fontSize: 13),
                               ),
                             ),
@@ -911,7 +914,7 @@ class _CreateOrderState extends State<Create_Order> {
                 Expanded(
                   child: ListTile(
                     title: Text(
-                      'GC / Coco',
+                      'Deliver',
                       style: GoogleFonts.montserrat(
                         fontSize: 14,
                         color: Color(0xff12283D),
@@ -987,7 +990,7 @@ class _CreateOrderState extends State<Create_Order> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
                 ),
-                color: Color(0xff12283d),
+                color: Constants.secondary_color,
                 elevation: 0,
                 minWidth: 350,
                 height: 60,

@@ -11,6 +11,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../utils/constants.dart';
+
 class Uniform extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
   final Color leftBarColor = Color(0xFFCB6600);
@@ -159,11 +161,11 @@ class _UniformState extends State<Uniform> {
         backgroundColor: Color(0xffffffff),
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
+          backgroundColor: Constants.primary_color,
           elevation: 10,
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios), // Use the back arrow icon
-            color: Color(0xff12283D),
+            color: Colors.white,
             onPressed: () {
               Navigator.of(context)
                   .pop(); // Pop the current page when the back button is pressed
@@ -174,7 +176,7 @@ class _UniformState extends State<Uniform> {
             style: GoogleFonts.montserrat(
                 fontWeight: FontWeight.w700,
                 fontStyle: FontStyle.normal,
-                color: Color(0xff12283D),
+                color: Colors.white,
                 fontSize: 16),
           ),
           actions: [
@@ -326,11 +328,12 @@ class _UniformState extends State<Uniform> {
                                                     fontWeight: FontWeight.w700,
                                                     fontStyle: FontStyle.normal,
                                                     fontSize: 16,
+                                                    color: Colors.white
                                                   ),
                                                 ),
                                               ),
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor: Color(0xffe81329),
+                                                backgroundColor: Constants.secondary_color,
                                               ),
                                               onPressed: sendOrderDataToAPI,
                                             ),
@@ -352,9 +355,10 @@ class _UniformState extends State<Uniform> {
                   // <-- Icon
                   Icons.add,
                   size: 24.0,
+                  color: Colors.white,
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xff3B8D5A), // Background color
+                  backgroundColor: Constants.secondary_color, // Background color
                 ),
                 label: Text(
                   'Uniform Order',
