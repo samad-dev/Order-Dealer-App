@@ -113,6 +113,7 @@ class _HomeScreenState extends State<Home> {
         print("hellow $id");
         account =  data[0]["acount"];
         Pumpname = data[0]["name"];
+        prefs.setString("sap_no", data[0]["sap_no"].toString());
         prefs.setString("account", data[0]["acount"].toString());
         print("$account and1 ${data[0]['acount']}");
         return data;

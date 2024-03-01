@@ -1,9 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="Puma Order App"
+        android:label="My Puma"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCSIFvepgZUstSBmyLgFXiyxd3nx2zOoBY"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

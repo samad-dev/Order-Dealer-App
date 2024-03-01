@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hascol_dealer/screens/otp.dart';
+import 'package:hascol_dealer/utils/constants.dart';
 import 'home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -45,14 +47,33 @@ class _LoginState extends State<Login> {
 
     if (response.statusCode == 200) {
       final jsons = json.decode(response.body);
-
       if (jsons.isNotEmpty) {
-        if(jsons[0]["privilege"]== "Dealer"){
+        if(jsons[0] == "Your Are Not Verified"){
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                backgroundColor: Colors.black,
+                title: Text('Important Message',style: TextStyle(color: Colors.white),),
+                content: Text('Your are not verified. Contact with Business Support Department',style: TextStyle(color: Colors.white),),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Close',style: TextStyle(color: Colors.white),),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+        else if(jsons[0]["privilege"]== "Dealer"){
           final prefs = await SharedPreferences.getInstance();
-          prefs.setBool('isLoggedIn', true);
           print(jsons[0]['name']);
           prefs.setString("Id", jsons[0]["id"]);
           prefs.setString("name", jsons[0]["name"].toString());
+          prefs.setString("password", jsons[0]["password"].toString());
           prefs.setString("contact", jsons[0]["contact"].toString());
           prefs.setString("email", jsons[0]["email"].toString());
           prefs.setString("location", jsons[0]["location"].toString());
@@ -66,13 +87,14 @@ class _LoginState extends State<Login> {
           prefs.setString("Nozel_price", jsons[0]["Nozel_price"].toString());
           prefs.setString("sap_no", jsons[0]["sap_no"].toString());
           prefs.setString("acount", jsons[0]["acount"].toString());
-          Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Home(),),);
-        }else if(jsons[0]["privilege"]=="Manager"){
+          Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Otp(),),);
+        }
+        else if(jsons[0]["privilege"]=="Manager"){
           final prefs = await SharedPreferences.getInstance();
-          prefs.setBool('isLoggedIn', true);
           print(jsons[0]['name']);
           prefs.setString("Id", jsons[0]["parent_id"]);
           prefs.setString("name", jsons[0]["name"].toString());
+          prefs.setString("password", jsons[0]["password"].toString());
           prefs.setString("contact", jsons[0]["contact"].toString());
           prefs.setString("email", jsons[0]["email"].toString());
           prefs.setString("location", jsons[0]["location"].toString());
@@ -86,12 +108,12 @@ class _LoginState extends State<Login> {
           prefs.setString("Nozel_price", jsons[0]["Nozel_price"].toString());
           prefs.setString("sap_no", jsons[0]["sap_no"].toString());
           prefs.setString("acount", jsons[0]["acount"].toString());
-          Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Home(),),);
+          Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Otp(),),);
         }
 
 
-      } else {
-        // Incorrect credentials
+      }
+      else {
         Fluttertoast.showToast(
             msg: "Incorrect Credentials. Please Try Again",
             toastLength: Toast.LENGTH_SHORT,
@@ -290,6 +312,7 @@ class _LoginState extends State<Login> {
                   ],
                 ),
                 SizedBox(height:30),
+                /*
                 Container(
                   alignment: Alignment.center,
                   child: Container(
@@ -313,6 +336,7 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
+                */
               ],
             ),
           ),

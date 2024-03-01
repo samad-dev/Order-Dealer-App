@@ -25,6 +25,7 @@ class _CreateOrderState extends State<Create_Order> {
   List<dynamic>? sapi;
   List<int> product_values1 = [];
   List<TextEditingController> controllers = [];
+  List<int> myQuantity=[];
   late List<int> selectedOptions;
   late List<double> hsdtValues;
   int? total;
@@ -46,20 +47,38 @@ class _CreateOrderState extends State<Create_Order> {
   List<String> size_id_list = [];
   String? selectedsizeformId;
   String? selectedsizeformType;
+  double freight_value = 0.0;
   var _site = "Self";
   double sum = 0.0;
+
   void updateSum() {
     sum = 0;
     List<double> numbers = hsdtValues;
+    double Negself = newsum();
     sum = numbers.reduce((value, element) => value + element);
+    if(_site == 'Self'){
+      sum = sum - Negself;
+    }else{
+      sum = sum;
+    }
 
     print("Sum: $sum");
+  }
+
+  double newsum(){
+    double total = selectedOptions.fold(0, (prev, curr) => prev + curr);
+    print(total);
+    print(sapi?[0]["freight_value"]);
+    print('Print Moiz ${total * double.parse(sapi?[0]["freight_value"])}');
+    return total *double.parse(sapi?[0]["freight_value"]);
   }
 
   create() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var id = prefs.getString("Id");
+    var sap_no = prefs.getString("sap_no");
     var legder_balance = prefs.getString("account");
+    String result = _site == "self" ? "ZXR" : "ZDL";
     List<Map<String, dynamic>> jsonArray = [];
     for (int i = 0; i < hsdtValues.length; i++) {
       print('Moiz:====${controllers[i].text.toString()}');
@@ -70,6 +89,9 @@ class _CreateOrderState extends State<Create_Order> {
         'indent_price': '${sapi?[i]['indent_price']}',
         'product_name': '${sapi?[i]['name']}',
         'amount': hsdtValues[i],
+        'dealer_sap':'$sap_no',
+        'product_sap':'${sapi?[i]['sap_no']}',
+        'dealer_order_type':'$result',
       };
       jsonArray.add(jsonObject);
     }
@@ -86,12 +108,13 @@ class _CreateOrderState extends State<Create_Order> {
           'dealer_id': '${id}',
           'row_id': '',
           'depot': '${_mySelection}',
-          'type': '${_site}',
+          'type': '$result',
           'tl_no': '${tlController.text.toString()}',
           'total': '${sum}',
           'product': '${jsonString}',
           'legder_balance': '${legder_balance}',
           'user_id': '${id}',
+          'dealer_sap':'${sap_no}',
         });
         http.StreamedResponse response = await request.send();
         if (response.statusCode == 200) {
@@ -127,12 +150,13 @@ class _CreateOrderState extends State<Create_Order> {
         'dealer_id': '${id}',
         'row_id': '',
         'depot': '${_mySelection}',
-        'type': '${_site}',
+        'type': '$result',
         'tl_no': '${tlController.text.toString()}',
         'total': '${sum}',
         'product': '${jsonString}',
         'legder_balance': '$legder_balance',
         'user_id': '${id}',
+        'dealer_sap':'${sap_no}',
       });
       http.StreamedResponse response = await request.send();
       if (response.statusCode == 200) {
@@ -156,6 +180,8 @@ class _CreateOrderState extends State<Create_Order> {
       }
     }
   }
+
+
 
   @override
   void initState() {
@@ -194,6 +220,7 @@ class _CreateOrderState extends State<Create_Order> {
 
     final url = Uri.parse(
         "http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_products.php?key=03201232927&dealer_id=${id}");
+    print("http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_products.php?key=03201232927&dealer_id=${id}");
 
     try {
       final response = await http.get(url);
@@ -202,8 +229,7 @@ class _CreateOrderState extends State<Create_Order> {
         final List<dynamic> jsonResponse = json.decode(response.body);
         print(jsonResponse);
         sapi = jsonResponse;
-        List<Map<String, dynamic>> data =
-            jsonResponse.cast<Map<String, dynamic>>();
+        List<Map<String, dynamic>> data = jsonResponse.cast<Map<String, dynamic>>();
         print('Samad ${data.length}');
         hsdtValues = List.filled(data.length, 0);
         selectedOptions = List.filled(data.length, 0);
@@ -330,6 +356,63 @@ class _CreateOrderState extends State<Create_Order> {
             SizedBox(
               height: 20,
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                Expanded(
+                  child: ListTile(
+                    title: Text(
+                      'Self',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        color: Color(0xff12283D),
+                        fontWeight: FontWeight.w500,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    leading: Radio(
+                      fillColor: MaterialStateProperty.all(Color(0xff12283D)),
+                      overlayColor:
+                      MaterialStateProperty.all(Color(0xff12283D)),
+                      value: "Self",
+                      groupValue: _site,
+                      onChanged: (value) {
+                        setState(() {
+                          _site = value!;
+                          updateSum();
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ListTile(
+                    title: Text(
+                      'Deliver',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        color: Color(0xff12283D),
+                        fontWeight: FontWeight.w500,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    leading: Radio(
+                      fillColor: MaterialStateProperty.all(Color(0xff12283D)),
+                      overlayColor:
+                      MaterialStateProperty.all(Color(0xff12283D)),
+                      value: "GC / Coco",
+                      groupValue: _site,
+                      onChanged: (value) {
+                        setState(() {
+                          _site = value!;
+                          updateSum();
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
             FutureBuilder<List<Map<String, dynamic>>?>(
               future: data1,
               builder: (context, snapshot) {
@@ -383,7 +466,9 @@ class _CreateOrderState extends State<Create_Order> {
 
                                         print("Hellow brother $hsdtValues");
                                         print("Hellow brother $selectedOptions");
+
                                         updateSum();
+                                        newsum();
                                       });
                                     } else {
                                       print("Enter value");
@@ -403,6 +488,7 @@ class _CreateOrderState extends State<Create_Order> {
                                       });
                                     } else {
                                       print("Enter value");
+                                      newsum();
                                     }
                                     ;
                                   },
@@ -883,61 +969,6 @@ class _CreateOrderState extends State<Create_Order> {
               ),
             ),
             */
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                Expanded(
-                  child: ListTile(
-                    title: Text(
-                      'Self',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 14,
-                        color: Color(0xff12283D),
-                        fontWeight: FontWeight.w500,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    leading: Radio(
-                      fillColor: MaterialStateProperty.all(Color(0xff12283D)),
-                      overlayColor:
-                          MaterialStateProperty.all(Color(0xff12283D)),
-                      value: "Self",
-                      groupValue: _site,
-                      onChanged: (value) {
-                        setState(() {
-                          _site = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: ListTile(
-                    title: Text(
-                      'Deliver',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 14,
-                        color: Color(0xff12283D),
-                        fontWeight: FontWeight.w500,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    leading: Radio(
-                      fillColor: MaterialStateProperty.all(Color(0xff12283D)),
-                      overlayColor:
-                          MaterialStateProperty.all(Color(0xff12283D)),
-                      value: "GC / Coco",
-                      groupValue: _site,
-                      onChanged: (value) {
-                        setState(() {
-                          _site = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
             if (_site == "Self")
               TextFormField(
                 controller: tlController,

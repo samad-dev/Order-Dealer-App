@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../main.dart';
 import '../utils/constants.dart';
+import 'ChangePassword.dart';
 
 class Profile extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -184,6 +185,38 @@ class _ProfileState extends State<Profile> {
                                 ],
                               ),
                             ),
+                          ),
+                          Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child:GestureDetector(
+                                onTap: () async {
+                                  Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) => ChangePasswordPage()),);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.lock_open,
+                                        size: 25,
+                                      ),
+                                      SizedBox(width: 5,),
+                                      Container(
+                                        child: Text(
+                                          'Change Password',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            color: Color(0xff000000),
+                                            fontWeight: FontWeight.w600,
+                                            fontStyle: FontStyle.normal,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
                           ),
                           GestureDetector(
                             onTap: () async {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hascol_dealer/screens/Registeration_Form.dart';
 import 'package:hascol_dealer/screens/home.dart';
 import 'package:hascol_dealer/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -231,9 +232,11 @@ class _SplashScreenState extends State<SplashScreen> {
                             ),
                             SizedBox(height: 10),
                             // Add some spacing between the rows
+
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
+                                /*
                                 Expanded(
                                   child: TextButton(
                                     style: ButtonStyle(
@@ -250,7 +253,14 @@ class _SplashScreenState extends State<SplashScreen> {
                                         ),
                                       ),
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push<void>(
+                                        context,
+                                        MaterialPageRoute<void>(
+                                          builder: (BuildContext context) => RegistrationForm(),
+                                        ),
+                                      );
+                                    },
                                     child: Text(
                                       'Register here',
                                       style: GoogleFonts.raleway(
@@ -261,6 +271,7 @@ class _SplashScreenState extends State<SplashScreen> {
                                     ),
                                   ),
                                 ),
+                                */
                               ],
                             ),
                           ],

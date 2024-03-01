@@ -22,6 +22,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 
 import '../utils/constants.dart';
+import 'Tracking.dart';
 
 class Orders extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -130,7 +131,7 @@ class _OrdersState extends State<Orders> {
       print('Error picking image: $e');
     }
   }
-  Future<void> createInvoice(BuildContext context, String orderNumber) async {
+  Future<void> createInvoice(BuildContext context, String orderNumber,String SaleOrder) async {
     final List<Map<String, dynamic>>? data = await fetchData();
 
     if (data != null && data.isNotEmpty) {
@@ -170,14 +171,14 @@ class _OrdersState extends State<Orders> {
               ),
               pw.SizedBox(height: 12),
               pw.Text(
-                'Invoice#: $orderID',
+                'Invoice#: $SaleOrder',
                 style: pw.TextStyle(
                   fontSize: 16,
                 ),
               ),
               pw.Text('Total Amount: PKR. $totalAmount'),
               pw.Text('Date and Time: $dateTime'),
-              pw.Text('Type: $type'),
+              pw.Text('Type: ${type == 'ZDL' ? 'Delivered' : type == 'GC / Coco' ? 'Delivered' : 'Self'}'),
               pw.SizedBox(height: 20),
               pw.Table.fromTextArray(
                 context: context,
@@ -240,6 +241,8 @@ class _OrdersState extends State<Orders> {
     var id = prefs.getString("Id");
     final response = await http.get(Uri.parse(
         'http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealer_orders.php?key=03201232927&id=${id}'));
+    print('http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealer_orders.php?key=03201232927&id=${id}');
+    //1212
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -261,7 +264,7 @@ class _OrdersState extends State<Orders> {
       searchQuery = query;
       if (query.isNotEmpty) {
         filteredData =
-            order_list.where((order) => order['id'].contains(query)).toList();
+            order_list.where((order) => order['SaleOrder'].contains(query)).toList();
       } else {
         filteredData = order_list;
       }
@@ -388,31 +391,48 @@ class _OrdersState extends State<Orders> {
                             if (searchQuery.isNotEmpty) {
                               filteredData = order_list
                                   .where((order) =>
-                                      order['id'].contains(searchQuery))
+                                      order['SaleOrder'].contains(searchQuery))
                                   .toList();
                             } else {filteredData = order_list;}
                             final orderNumber = filteredData[index2]["id"];
+                            final SaleOrder = filteredData[index2]["SaleOrder"];
                             final totalAmount = filteredData[index2]['total_amount'];
+                            double amount = double.parse(totalAmount);
+                            String formattedAmount = amount.toStringAsFixed(2);
                             final type = filteredData[index2]['type'];
                             final created_at = filteredData[index2]['created_at'];
                             final productJsonString = filteredData[index2]["product_json"];
                             final status = filteredData[index2]["status"];
-                            final current_status = filteredData[index2]["current_status"];
+                            final delivered_status = filteredData[index2]["delivered_status"];
+                            final current_status = filteredData[index2]["status_value"];
+                            final sap_status = filteredData[index2]["sap_status"];
                             final List<Map<String, dynamic>> products =
                                 List<Map<String, dynamic>>.from(json.decode(productJsonString));
                             var c1;
+                            late IconData iconData;
                             print("Khan-----> $products");
-                            if (status == '0') {
-                              c1 = 0xff907e3e;
-                            } else if (status == '1') {
+                            // if (status == '0') {
+                            //   c1 = 0xff907e3e;
+                            //   iconData = FontAwesomeIcons.hourglassStart;
+                            // } else if (status == '1') {
+                            //   c1 = 0xffdbb256;
+                            //   iconData = FontAwesomeIcons.hourglassHalf;
+                            // } else if (delivered_status == '1') {
+                            //   c1 = 0xff358e58;
+                            //   iconData = FontAwesomeIcons.truckMoving;
+                            // } else if (status == "2") {
+                            //   c1 = 0xffe02c2f;
+                            //   iconData = FontAwesomeIcons.circleCheck;
+                            // }
+                            // else{
+                            //   c1 =0xff339966;
+                            // }
+                            if (current_status == 'Completely Processed') {
                               c1 = 0xffdbb256;
-                            } else if (status == "2") {
-                              c1 = 0xff358e58;
-                            } else if (status == "3") {
-                              c1 = 0xffe02c2f;
-                            }
-                            else{
-                              c1 =0xff339966;
+                              iconData = FontAwesomeIcons.circleCheck;
+                            } else {
+                              c1 = 0xff907e3e;
+                              iconData = FontAwesomeIcons.hourglassStart;
                             }
                             int index = 0;
                             Color backgroundColor = Colors.white;
@@ -443,7 +463,7 @@ class _OrdersState extends State<Orders> {
                                                     children: [
                                                       Text('Temp Order#'),
                                                       Text(
-                                                        '$orderNumber',
+                                                        '$SaleOrder',
                                                         style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
@@ -455,7 +475,7 @@ class _OrdersState extends State<Orders> {
                                                     children: [
                                                       Text('Type:'),
                                                       Text(
-                                                        '$type',
+                                                        type == 'ZDL' ? 'Delivered' : type == 'GC / Coco' ? 'Delivered' : 'Self',
                                                         style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
@@ -554,7 +574,8 @@ class _OrdersState extends State<Orders> {
                                                                   .center,
                                                           children: [
                                                             Text(
-                                                                "${products[i]['amount']}"),
+                                                              products[i]['amount'].toStringAsFixed(2),
+                                                            ),
                                                           ],
                                                         ),
                                                       ],
@@ -572,7 +593,7 @@ class _OrdersState extends State<Orders> {
                                                 children: [
                                                   Text('Total Amount: '),
                                                   Text(
-                                                    '$totalAmount Rs.',
+                                                    '$formattedAmount Rs.',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -596,420 +617,440 @@ class _OrdersState extends State<Orders> {
                               child: Card(
                                 elevation: 10,
                                 color: Color(0xffF0F0F0),
-                                child: Container(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
                                   child: Column(
                                     children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(7.0),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Order#: $orderNumber',
-                                                  style: GoogleFonts.montserrat(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle: FontStyle.normal,
-                                                    color: Color(0xff12283D),
-                                                    fontSize: 16,
-                                                  ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Order#: $SaleOrder',
+                                                style: GoogleFonts.montserrat(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FontStyle.normal,
+                                                  color: Color(0xff12283D),
+                                                  fontSize: 16,
                                                 ),
-                                                Text(
-                                                  'PKR. $totalAmount',
-                                                  style: GoogleFonts.montserrat(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontStyle: FontStyle.normal,
-                                                    color: Color(0xff3B8D5A),
-                                                    fontSize: 12,
-                                                  ),
+                                              ),
+                                              Text(
+                                                'PKR. $formattedAmount',
+                                                style: GoogleFonts.montserrat(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FontStyle.normal,
+                                                  color: Color(0xff3B8D5A),
+                                                  fontSize: 12,
                                                 ),
-                                                SizedBox(
-                                                  height: 32,
-                                                ),
-                                                Text(
-                                                  '$created_at',
-                                                  style: GoogleFonts.montserrat(
-                                                    fontWeight: FontWeight.w300,
-                                                    fontStyle: FontStyle.normal,
-                                                    color: Color(0xff9b9b9b),
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Card(
-                                                  color: Color(c1),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            3.0),
-                                                    child: Text(
-                                                      '$current_status',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        fontStyle:
-                                                            FontStyle.normal,
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.end,
+                                            children: [
+                                              Card(
+                                                color: Color(c1),
+                                                child: Padding(padding: const EdgeInsets.all(5.0),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        iconData,
                                                         color: Colors.white,
-                                                        fontSize: 12,
+                                                        size: 16.0,
                                                       ),
+                                                      SizedBox(width: 5,),
+                                                      Text(
+                                                        '$current_status',
+                                                        style:
+                                                        GoogleFonts.poppins(
+                                                          fontWeight:
+                                                          FontWeight.w500,
+                                                          fontStyle:
+                                                          FontStyle.normal,
+                                                          color: Colors.white,
+                                                          fontSize: 10,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          Column(
+                                            children: [
+                                              if(delivered_status == '1'|| sap_status == '1')
+                                                TextButton.icon(
+                                                  label: Text(
+                                                    'Track',
+                                                    style: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w300,
+                                                      fontSize: 12,
+                                                      fontStyle: FontStyle.normal,
+                                                      color: Color(0xff12283D),
                                                     ),
                                                   ),
+                                                  onPressed: (){
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(builder: (context) => OilTankMapPage(SaleOrder: SaleOrder)),
+                                                    );
+                                                  },
+                                                  icon: Icon(
+                                                    Icons.route,
+                                                    color: Color(0xff12283D),
+                                                    size: 16,
+                                                  ),
                                                 ),
-                                                SizedBox(
-                                                  height: 3,
-                                                ),
-                                                SizedBox(
-                                                  width: 90,
-                                                  height: 20,
-                                                  child: status == '2'
-                                                      ? ElevatedButton(
-                                                          child: Text(
-                                                            'Shortage',
-                                                            style: GoogleFonts
-                                                                .poppins(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w100,
-                                                              fontSize: 11,
-                                                              fontStyle:
-                                                                  FontStyle
-                                                                      .normal,
-                                                            ),
-                                                          ),
-                                                          style: ElevatedButton
-                                                              .styleFrom(
-                                                            backgroundColor:
-                                                                Color(
-                                                                    0xff12283D),
-                                                            shape:
-                                                                RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          18.0),
-                                                            ),
-                                                          ),
-                                                          onPressed: () {
-                                                            quantity_input = List<int>.filled(products.length,0);
-                                                            quantity_less = List<double>.filled(products.length,0);
-                                                            imageNameController.clear();
-                                                            selectedImage = null; // Reset selectedImage
-                                                            showModalBottomSheet(
-                                                              context: context,
-                                                              isScrollControlled: true,
+                                              if(delivered_status == '2'||sap_status == '2')
+                                                TextButton.icon(
+                                                  label: Text(
+                                                    'Shortage',
+                                                    style: GoogleFonts.poppins( // Ensure GoogleFonts.poppins is properly imported
+                                                      fontWeight: FontWeight.w300,
+                                                      fontSize: 12,
+                                                      fontStyle: FontStyle.normal,
+                                                      color: Color(0xff12283D),
+                                                    ),
+                                                  ),
+                                                  onPressed: () {
+                                                    quantity_input = List<int>.filled(products.length,0);
+                                                    quantity_less = List<double>.filled(products.length,0);
+                                                    imageNameController.clear();
+                                                    selectedImage = null; // Reset selectedImage
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
 
-                                                              shape: RoundedRectangleBorder(
-                                                                borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-                                                              ),
-                                                              builder: (context) {
-                                                                return StatefulBuilder(builder: (context, setState){
-                                                                  return SingleChildScrollView(
-                                                                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                                                                    child: Padding(padding: const EdgeInsets.all(16.0),
-                                                                      child: Column(
-                                                                        children: [
-                                                                          Text('Shortage', style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),),
-                                                                          for(var i=0; i<products.length; i++)
-                                                                            if (products[i]['quantity'] != null && products[i]['quantity'] != '0')
-                                                                              Padding(padding: const EdgeInsets.all(8.0),
-                                                                                  child:Row(
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+                                                      ),
+                                                      builder: (context) {
+                                                        return StatefulBuilder(builder: (context, setState){
+                                                          return SingleChildScrollView(
+                                                            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                                                            child: Padding(padding: const EdgeInsets.all(16.0),
+                                                              child: Column(
+                                                                children: [
+                                                                  Text('Shortage', style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),),
+                                                                  for(var i=0; i<products.length; i++)
+                                                                    if (products[i]['quantity'] != null && products[i]['quantity'] != '0')
+                                                                      Padding(padding: const EdgeInsets.all(8.0),
+                                                                          child:Row(
+                                                                            children: [
+                                                                              Expanded(
+                                                                                child: Container(
+                                                                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                                                                  child: TextField(
+                                                                                    keyboardType: TextInputType.number,
+                                                                                    decoration: InputDecoration(
+                                                                                      hintText: "Enter Received Quantity ",
+                                                                                      labelText: products[i]["product_name"],
+                                                                                      border: OutlineInputBorder(
+                                                                                        borderRadius: BorderRadius.circular(18.0),
+                                                                                      ),
+                                                                                    ),
+                                                                                    maxLines: 1, // Limit the number of lines
+                                                                                    onChanged: (dynamic value) {
+                                                                                      if (value.isNotEmpty) {
+                                                                                        setState(() {
+                                                                                          quantity_input[i] = int.parse(value);
+                                                                                          print('${products[i]['quantity']}');
+                                                                                          hsd = double.parse("${products[i]['quantity']}")-int.parse(value);
+                                                                                          quantity_less[i] = hsd;
+
+                                                                                          print("Hellow brother1 $quantity_input");
+                                                                                          print("Hellow brother1 $quantity_less");
+                                                                                        });
+                                                                                      } else {
+                                                                                        print("Enter value");
+                                                                                      };
+                                                                                    },
+                                                                                    onSubmitted: (dynamic value) {
+                                                                                      if (value.isNotEmpty) {
+                                                                                        setState(() {
+                                                                                          quantity_input[i] = int.parse(value);
+                                                                                          print('${products[i]['quantity']}');
+                                                                                          hsd = double.parse("${products[i]['quantity']}")-int.parse(value);
+                                                                                          quantity_less[i] = hsd;
+
+                                                                                          print("Hellow brother1 $quantity_input");
+                                                                                          print("Hellow brother1 $quantity_less");
+                                                                                        });
+                                                                                      } else {
+                                                                                        print("Enter value");
+                                                                                      };
+                                                                                    },
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                              Expanded(
+                                                                                  child: Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                                                     children: [
-                                                                                      Expanded(
-                                                                                        child: Container(
-                                                                                          padding: EdgeInsets.symmetric(horizontal: 16),
-                                                                                          child: TextField(
-                                                                                            keyboardType: TextInputType.number,
-                                                                                            decoration: InputDecoration(
-                                                                                              hintText: "Enter Received Quantity ",
-                                                                                              labelText: products[i]["product_name"],
-                                                                                              border: OutlineInputBorder(
-                                                                                                borderRadius: BorderRadius.circular(18.0),
-                                                                                              ),
-                                                                                            ),
-                                                                                            maxLines: 1, // Limit the number of lines
-                                                                                            onChanged: (dynamic value) {
-                                                                                              if (value.isNotEmpty) {
-                                                                                                setState(() {
-                                                                                                  quantity_input[i] = int.parse(value);
-                                                                                                  print('${products[i]['quantity']}');
-                                                                                                  hsd = double.parse("${products[i]['quantity']}")-int.parse(value);
-                                                                                                  quantity_less[i] = hsd;
-
-                                                                                                  print("Hellow brother1 $quantity_input");
-                                                                                                  print("Hellow brother1 $quantity_less");
-                                                                                                });
-                                                                                              } else {
-                                                                                                print("Enter value");
-                                                                                              };
-                                                                                            },
-                                                                                            onSubmitted: (dynamic value) {
-                                                                                              if (value.isNotEmpty) {
-                                                                                                setState(() {
-                                                                                                  quantity_input[i] = int.parse(value);
-                                                                                                  print('${products[i]['quantity']}');
-                                                                                                  hsd = double.parse("${products[i]['quantity']}")-int.parse(value);
-                                                                                                  quantity_less[i] = hsd;
-
-                                                                                                  print("Hellow brother1 $quantity_input");
-                                                                                                  print("Hellow brother1 $quantity_less");
-                                                                                                });
-                                                                                              } else {
-                                                                                                print("Enter value");
-                                                                                              };
-                                                                                            },
-                                                                                          ),
-                                                                                        ),
-                                                                                      ),
-                                                                                      Expanded(
-                                                                                          child: Row(
-                                                                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                                                            children: [
-                                                                                              Text(
-                                                                                                " - ",
-                                                                                                style: TextStyle(
-                                                                                                  fontSize: 16.0,),),
-                                                                                              Text(
-                                                                                                  products[i]["quantity"],
-                                                                                                  style: TextStyle(
-                                                                                                    fontSize: 16.0,)),
-                                                                                              Text(
-                                                                                                  " = ",
-                                                                                                  style: TextStyle(
-                                                                                                    fontSize: 16.0,)),
-                                                                                              Text(
-                                                                                                  quantity_less[i].toString(),
-                                                                                                  style: TextStyle(
-                                                                                                    fontSize: 16.0,))
-                                                                                            ],
-                                                                                          )
-                                                                                      ),
+                                                                                      Text(
+                                                                                        " - ",
+                                                                                        style: TextStyle(
+                                                                                          fontSize: 16.0,),),
+                                                                                      Text(
+                                                                                          products[i]["quantity"],
+                                                                                          style: TextStyle(
+                                                                                            fontSize: 16.0,)),
+                                                                                      Text(
+                                                                                          " = ",
+                                                                                          style: TextStyle(
+                                                                                            fontSize: 16.0,)),
+                                                                                      Text(
+                                                                                          quantity_less[i].toString(),
+                                                                                          style: TextStyle(
+                                                                                            fontSize: 16.0,))
                                                                                     ],
                                                                                   )
                                                                               ),
+                                                                            ],
+                                                                          )
+                                                                      ),
 
 
-                                                                          /*
-                                                                            for (var i = 0; i < products.length; i++)
-                                                                              if (products[i]['quantity'] != null && products[i]['quantity'] != '0') {
-                                                                                return Padding(
-                                                                                  padding: const EdgeInsets
-                                                                                      .all(
-                                                                                      8.0),
-                                                                                  child: Row(
-                                                                                    children: [
-                                                                                      Expanded(
-                                                                                        child: Container(
-                                                                                          padding: EdgeInsets
-                                                                                              .symmetric(
-                                                                                              horizontal: 16),
-                                                                                          child: TextField(
-                                                                                            keyboardType: TextInputType
-                                                                                                .number,
-                                                                                            decoration: InputDecoration(
-                                                                                              hintText: "Enter Received Quantity ",
-                                                                                              labelText: products[index]["product_name"],
-                                                                                              border: OutlineInputBorder(
-                                                                                                borderRadius: BorderRadius
-                                                                                                    .circular(
-                                                                                                    18.0),
-                                                                                              ),
+                                                                  /*
+                                                                          for (var i = 0; i < products.length; i++)
+                                                                            if (products[i]['quantity'] != null && products[i]['quantity'] != '0') {
+                                                                              return Padding(
+                                                                                padding: const EdgeInsets
+                                                                                    .all(
+                                                                                    8.0),
+                                                                                child: Row(
+                                                                                  children: [
+                                                                                    Expanded(
+                                                                                      child: Container(
+                                                                                        padding: EdgeInsets
+                                                                                            .symmetric(
+                                                                                            horizontal: 16),
+                                                                                        child: TextField(
+                                                                                          keyboardType: TextInputType
+                                                                                              .number,
+                                                                                          decoration: InputDecoration(
+                                                                                            hintText: "Enter Received Quantity ",
+                                                                                            labelText: products[index]["product_name"],
+                                                                                            border: OutlineInputBorder(
+                                                                                              borderRadius: BorderRadius
+                                                                                                  .circular(
+                                                                                                  18.0),
                                                                                             ),
-                                                                                            maxLines: 1, // Limit the number of lines
                                                                                           ),
+                                                                                          maxLines: 1, // Limit the number of lines
                                                                                         ),
                                                                                       ),
-                                                                                      Expanded(
-                                                                                          child: Row(
-                                                                                            mainAxisAlignment: MainAxisAlignment
-                                                                                                .spaceEvenly,
-                                                                                            children: [
-                                                                                              Text(
-                                                                                                " - ",
+                                                                                    ),
+                                                                                    Expanded(
+                                                                                        child: Row(
+                                                                                          mainAxisAlignment: MainAxisAlignment
+                                                                                              .spaceEvenly,
+                                                                                          children: [
+                                                                                            Text(
+                                                                                              " - ",
+                                                                                              style: TextStyle(
+                                                                                                fontSize: 16.0,),),
+                                                                                            Text(
+                                                                                                products[index]["quantity"],
                                                                                                 style: TextStyle(
-                                                                                                  fontSize: 16.0,),),
-                                                                                              Text(
-                                                                                                  products[index]["quantity"],
-                                                                                                  style: TextStyle(
-                                                                                                    fontSize: 16.0,)),
-                                                                                              Text(
-                                                                                                  " = ",
-                                                                                                  style: TextStyle(
-                                                                                                    fontSize: 16.0,)),
-                                                                                              Text(
-                                                                                                  " Quantity ",
-                                                                                                  style: TextStyle(
-                                                                                                    fontSize: 16.0,))
-                                                                                            ],
-                                                                                          )),
-                                                                                    ],
-                                                                                  ),
-                                                                                );
-                                                                              }
-                                                                            */
-                                                                          Padding(
-                                                                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                                                            child: Container(
-                                                                              decoration: BoxDecoration(
-                                                                                border: Border.all(color: Colors.grey), // Border color
-                                                                                borderRadius: BorderRadius.circular(20.0), // Border radius
-                                                                              ),
-                                                                              child: Row(
-                                                                                children: [
-                                                                                  Expanded(
-                                                                                    child: Padding(
-                                                                                      padding: const EdgeInsets.all(8.0),
-                                                                                      child: Text(imageNameController.text, maxLines: 1,),
-                                                                                    ),
-                                                                                  ),
-                                                                                  SizedBox(
-                                                                                    height: 40,
-                                                                                    child: ElevatedButton(
-                                                                                      onPressed: () {
-                                                                                        // Show an alert dialog to choose the image source
-                                                                                        showDialog(
-                                                                                          context: context,
-                                                                                          builder: (BuildContext context) {
-                                                                                            return AlertDialog(
-                                                                                              title: Center(child: Text('Choose an option')),
-                                                                                              actions: <Widget>[
-                                                                                                Padding(
-                                                                                                  padding: EdgeInsets.symmetric(horizontal: 70),
-                                                                                                  child: Row(
-                                                                                                    children: [
-                                                                                                      TextButton(
-                                                                                                        onPressed: () async {
-                                                                                                          Navigator.of(context).pop();
-                                                                                                          _pickImage(ImageSource.camera);
-                                                                                                        },
-                                                                                                        child: Icon(Icons.camera_alt_outlined, size: 35, color: Color(0xffea1b25),), // Add gallery icon
-                                                                                                      ),
-                                                                                                      SizedBox(
-                                                                                                        width: 10,
-                                                                                                      ),
-                                                                                                      TextButton(
-                                                                                                        onPressed: () async {
-                                                                                                          Navigator.of(context).pop();
-                                                                                                          FilePickerResult? result = await FilePicker.platform.pickFiles(
-                                                                                                            allowMultiple: false,
-                                                                                                            type: FileType.image,
-                                                                                                          );
-                                                                                                          if (result != null && result.files.isNotEmpty) {
-                                                                                                            setState(() {
-                                                                                                              selectedImage = File(result.files.first.path!);
-                                                                                                              imageNameController.text = selectedImage!
-                                                                                                                  .path
-                                                                                                                  .split('/')
-                                                                                                                  .last;
-                                                                                                            });
-                                                                                                          }
-                                                                                                        },
-                                                                                                        child: Icon(Icons.image_outlined, size: 35, color: Color(0xffea1b25),),
-                                                                                                      ),
-                                                                                                    ],
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ],
-                                                                                            );
-                                                                                          },
-                                                                                        );
-                                                                                      },
-                                                                                      style: ElevatedButton.styleFrom(
-                                                                                        shape: RoundedRectangleBorder(
-                                                                                          borderRadius: BorderRadius.only(
-                                                                                            topRight: Radius.circular(20.0), // Round only the top-right corner
-                                                                                            bottomRight: Radius.circular(20.0),
-                                                                                          ),
-                                                                                        ),
-                                                                                        backgroundColor: Color(0xffea1b25),
-                                                                                      ),
-                                                                                      child: Text('Pick Image',style: TextStyle(fontSize: 16.0,),),
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
+                                                                                                  fontSize: 16.0,)),
+                                                                                            Text(
+                                                                                                " = ",
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16.0,)),
+                                                                                            Text(
+                                                                                                " Quantity ",
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16.0,))
+                                                                                          ],
+                                                                                        )),
+                                                                                  ],
+                                                                                ),
+                                                                              );
+                                                                            }
+                                                                          */
+                                                                  Padding(
+                                                                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                                                    child: Container(
+                                                                      decoration: BoxDecoration(
+                                                                        border: Border.all(color: Colors.grey), // Border color
+                                                                        borderRadius: BorderRadius.circular(20.0), // Border radius
+                                                                      ),
+                                                                      child: Row(
+                                                                        children: [
+                                                                          Expanded(
+                                                                            child: Padding(
+                                                                              padding: const EdgeInsets.all(8.0),
+                                                                              child: Text(imageNameController.text, maxLines: 1,),
                                                                             ),
                                                                           ),
-                                                                            if(selectedImage != null)
-                                                                              Container(
-                                                                                margin: EdgeInsets.all(16.0),
-                                                                                child: Image.file(selectedImage!,
-                                                                                  width: 200.0,
-                                                                                  height: 200.0,
-                                                                                  fit: BoxFit.fill,
-                                                                                  key: globalKey,
+                                                                          SizedBox(
+                                                                            height: 40,
+                                                                            child: ElevatedButton(
+                                                                              onPressed: () {
+                                                                                // Show an alert dialog to choose the image source
+                                                                                showDialog(
+                                                                                  context: context,
+                                                                                  builder: (BuildContext context) {
+                                                                                    return AlertDialog(
+                                                                                      title: Center(child: Text('Choose an option')),
+                                                                                      actions: <Widget>[
+                                                                                        Padding(
+                                                                                          padding: EdgeInsets.symmetric(horizontal: 70),
+                                                                                          child: Row(
+                                                                                            children: [
+                                                                                              TextButton(
+                                                                                                onPressed: () async {
+                                                                                                  Navigator.of(context).pop();
+                                                                                                  _pickImage(ImageSource.camera);
+                                                                                                },
+                                                                                                child: Icon(Icons.camera_alt_outlined, size: 35, color: Color(0xffea1b25),), // Add gallery icon
+                                                                                              ),
+                                                                                              SizedBox(
+                                                                                                width: 10,
+                                                                                              ),
+                                                                                              TextButton(
+                                                                                                onPressed: () async {
+                                                                                                  Navigator.of(context).pop();
+                                                                                                  FilePickerResult? result = await FilePicker.platform.pickFiles(
+                                                                                                    allowMultiple: false,
+                                                                                                    type: FileType.image,
+                                                                                                  );
+                                                                                                  if (result != null && result.files.isNotEmpty) {
+                                                                                                    setState(() {
+                                                                                                      selectedImage = File(result.files.first.path!);
+                                                                                                      imageNameController.text = selectedImage!
+                                                                                                          .path
+                                                                                                          .split('/')
+                                                                                                          .last;
+                                                                                                    });
+                                                                                                  }
+                                                                                                },
+                                                                                                child: Icon(Icons.image_outlined, size: 35, color: Color(0xffea1b25),),
+                                                                                              ),
+                                                                                            ],
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
+                                                                                    );
+                                                                                  },
+                                                                                );
+                                                                              },
+                                                                              style: ElevatedButton.styleFrom(
+                                                                                shape: RoundedRectangleBorder(
+                                                                                  borderRadius: BorderRadius.only(
+                                                                                    topRight: Radius.circular(20.0), // Round only the top-right corner
+                                                                                    bottomRight: Radius.circular(20.0),
+                                                                                  ),
                                                                                 ),
+                                                                                backgroundColor: Color(0xffea1b25),
                                                                               ),
-                                                                          ElevatedButton(
-                                                                            onPressed:
-                                                                                () {
-                                                                                  post_send(orderNumber);
-                                                                                  setState(() {
-                                                                                    quantity_input = List<int>.filled(products.length, 0);
-                                                                                    quantity_less = List<double>.filled(products.length, 0);
-                                                                                    imageNameController.clear();
-                                                                                  });
-                                                                                  Navigator.pop(context); // Close the bottom sheet
-                                                                            },
-                                                                            style: ElevatedButton.styleFrom(
-                                                                              backgroundColor: Color(0xffea1b25),
+                                                                              child: Text('Pick Image',style: TextStyle(fontSize: 16.0,color: Colors.white),),
                                                                             ),
-                                                                            child: Text(
-                                                                                'Submit'),
                                                                           ),
                                                                         ],
                                                                       ),
                                                                     ),
-                                                                  );
-                                                                });
+                                                                  ),
+                                                                  if(selectedImage != null)
+                                                                    Container(
+                                                                      margin: EdgeInsets.all(16.0),
+                                                                      child: Image.file(selectedImage!,
+                                                                        width: 200.0,
+                                                                        height: 200.0,
+                                                                        fit: BoxFit.fill,
+                                                                        key: globalKey,
+                                                                      ),
+                                                                    ),
+                                                                  ElevatedButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      post_send(orderNumber);
+                                                                      setState(() {
+                                                                        quantity_input = List<int>.filled(products.length, 0);
+                                                                        quantity_less = List<double>.filled(products.length, 0);
+                                                                        imageNameController.clear();
+                                                                      });
+                                                                      Navigator.pop(context); // Close the bottom sheet
+                                                                    },
+                                                                    style: ElevatedButton.styleFrom(
+                                                                      backgroundColor: Color(0xffea1b25),
+                                                                    ),
+                                                                    child: Text(
+                                                                      'Submit',style: TextStyle(color: Colors.white),),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          );
+                                                        });
 
-                                                              },
-                                                            );
-                                                          },
-                                                        )
-                                                      : Container(),
-                                                ),
-                                                TextButton.icon(
-                                                  // <-- TextButton
-                                                  onPressed: () {
-                                                    createInvoice(
-                                                        context, orderNumber);
+                                                      },
+                                                    );
                                                   },
                                                   icon: Icon(
-                                                    FluentIcons
-                                                        .drawer_arrow_download_24_regular,
-                                                    size: 16.0,
+                                                    FontAwesomeIcons.chartLine,
                                                     color: Color(0xff12283D),
+                                                    size: 14.0,
                                                   ),
-                                                  label: Text(
-                                                    'Invoice',
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      fontWeight:
-                                                          FontWeight.w300,
-                                                      fontStyle:
-                                                          FontStyle.normal,
-                                                      color: Color(0xff12283D),
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
+                                                )
+                                            ],
+                                          ),
+                                        ],
                                       ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: const Divider(),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '$created_at',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.w300,
+                                              fontStyle: FontStyle.normal,
+                                              color: Color(0xff9b9b9b),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          TextButton.icon(
+                                            // <-- TextButton
+                                            onPressed: () {
+                                              createInvoice(
+                                                  context, orderNumber,SaleOrder);
+                                            },
+                                            icon: Icon(
+                                              FluentIcons
+                                                  .drawer_arrow_download_24_regular,
+                                              size: 16.0,
+                                              color: Color(0xff12283D),
+                                            ),
+                                            label: Text(
+                                              'Invoice',
+                                              style:
+                                              GoogleFonts.montserrat(
+                                                fontWeight:
+                                                FontWeight.w300,
+                                                fontStyle:
+                                                FontStyle.normal,
+                                                color: Color(0xff12283D),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
                                     ],
                                   ),
                                 ),
@@ -1019,478 +1060,11 @@ class _OrdersState extends State<Orders> {
                     ],
                   ),
                 ),
-                /*FutureBuilder<List<Map<String, dynamic>>?>(
-                  future: fetchData(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else if (!snapshot.hasData || snapshot.data == null) {
-                      return Text('No data available.');
-                    } else {
-                      List<Map<String, dynamic>> apiData = snapshot.data!;
-                      filteredData = List<Map<String, dynamic>>.from(apiData); // Assign to filtered data initially
-                      if (searchQuery.isNotEmpty) {
-                        filteredData = apiData.where((order) => order['id'].contains(searchQuery)).toList();
-                      }
-                      return ListView(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        children: filteredData.map((item) {
-
-                          final orderNumber = item["id"];
-                          final totalAmount = item['total_amount'];
-                          final type = item['type'];
-                          final created_at = item['created_at'];
-                          final productJsonString = item["product_json"];
-                          final status = item["status"];
-                          final current_status = item["current_status"];
-                          final List<Map<String, dynamic>> products = List<Map<String, dynamic>>.from(json.decode(productJsonString));
-                          var c1;
-                          print("Khan-----> $products");
-                          if(status=='0'){
-                            c1=0xff907e3e;
-                          }else if(status=='1'){
-                            c1=0xffdbb256;
-                          }else if(status=="2"){
-                            c1=0xff358e58;
-                          }else if(status=="3"){
-                            c1=0xffe02c2f;
-                          }
-                          int index = 0;
-                          Color backgroundColor = Colors.white;
-                          return GestureDetector(
-                              onTap: () {
-                                showDialog(
-                                    context: context,
-                                    barrierDismissible: false, // user must tap button!
-                                    builder: (BuildContext context){
-                                      return AlertDialog(
-                                        title: Text("Order Detail"),
-                                        content: Container(
-                                          width: MediaQuery.of(context).size.width,
-                                          height: MediaQuery.of(context).size.height/4,
-                                          child: Column(
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Text('Temp Order#'),
-                                                      Text('$orderNumber',
-                                                        style: TextStyle(fontWeight: FontWeight.bold,),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Text('Type:'),
-                                                      Text('$type',
-                                                        style: TextStyle(fontWeight: FontWeight.bold,),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(height: 10,),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Text("Product",style: TextStyle(fontWeight: FontWeight.bold,),),
-                                                  Text("Quantity",style: TextStyle(fontWeight: FontWeight.bold,),),
-                                                  Text("Indent Price",style: TextStyle(fontWeight: FontWeight.bold,),),
-                                                  Text("Amount",style: TextStyle(fontWeight: FontWeight.bold,),),
-                                                ],
-                                              ),
-                                              SizedBox(height: 10,),
-                                              for (var i = 0; i < products.length; i++)
-                                                if (products[i]['quantity'] != null && products[i]['quantity'] != '0')
-                                                  Container(
-                                                  color: backgroundColor = i % 2 == 0 ? Colors.grey : Colors.white,
-
-                                                  child: Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Column(
-                                                        mainAxisAlignment: MainAxisAlignment.start,
-                                                        children: [
-                                                          Text("${products[i]['product_name']}"),
-                                                        ],
-                                                      ),
-                                                      Column(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                        children: [
-                                                          Text("${products[i]['quantity']}"),
-                                                        ],
-                                                      ),
-                                                      Column(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                        children: [
-                                                          Text("${products[i]['indent_price']}"),
-                                                        ],
-                                                      ),
-                                                      Column(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                        children: [
-                                                          Text("${products[i]['amount']}"),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                  SizedBox(height: 5,),
-                                              SizedBox(height: 10,),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.end,
-                                                children: [
-                                                  Text('Total Amount: '),
-                                                  Text('$totalAmount Rs.',
-                                                    style: TextStyle(fontWeight: FontWeight.bold,),
-                                                  )
-
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                              child: Text("Close"),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              }
-                                          )
-                                        ],
-                                      );
-                                    }
-                                    );
-                                },
-                            child: Card(
-                            elevation: 10,
-                            color: Color(0xffF0F0F0),
-                            child: Container(
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(7.0),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Order#: $orderNumber',
-                                              style: GoogleFonts.montserrat(
-                                                fontWeight: FontWeight.w600,
-                                                fontStyle: FontStyle.normal,
-                                                color: Color(0xff12283D),
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            Text(
-                                              'Quantity: 23000 Ltr.',
-                                              style: GoogleFonts.montserrat(
-                                                fontWeight: FontWeight.w200,
-                                                fontStyle: FontStyle.normal,
-                                                color: Color(0xff737373),
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            Text(
-                                              'PKR. $totalAmount',
-                                              style: GoogleFonts.montserrat(
-                                                fontWeight: FontWeight.w600,
-                                                fontStyle: FontStyle.normal,
-                                                color: Color(0xff3B8D5A),
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: 32,
-                                            ),
-                                            Text(
-                                              '$created_at',
-                                              style: GoogleFonts.montserrat(
-                                                fontWeight: FontWeight.w300,
-                                                fontStyle: FontStyle.normal,
-                                                color: Color(0xff9b9b9b),
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.end,
-                                          children: [
-                                            Card(
-                                              color: Color(c1),
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(3.0),
-                                                child: Text(
-                                                  '$current_status',
-                                                  style: GoogleFonts.poppins(
-                                                    fontWeight: FontWeight.w500,
-                                                    fontStyle: FontStyle.normal,
-                                                    color: Colors.white,
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-
-                                            Text(
-                                              'Waiting For Approval',
-                                              style: GoogleFonts.montserrat(
-                                                fontWeight: FontWeight.w300,
-                                                fontStyle: FontStyle.normal,
-                                                color: Color(0xff9b9b9b),
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: 3,
-                                            ),
-                                            SizedBox(
-                                              width: 90,
-                                              height: 20,
-                                              child: status == '2' ? ElevatedButton(
-                                                child: Text(
-                                                  'Shortage',
-                                                  style: GoogleFonts.poppins(
-                                                    fontWeight: FontWeight.w100,
-                                                    fontSize: 11,
-                                                    fontStyle: FontStyle.normal,
-                                                  ),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: Color(0xff12283D),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(18.0),
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  showModalBottomSheet(
-                                                    context: context,
-                                                    builder: (context) {
-                                                      return Container(
-                                                        color: Colors.white54,
-                                                        child: Column(
-                                                          children: [
-                                                            SizedBox(height: 30),
-                                                            Icon(
-                                                              FontAwesomeIcons.cameraRetro,
-                                                              color: Color(0xff12283d),
-                                                              size: 160,
-                                                            ),
-                                                            Text(
-                                                              'Click Here To Upload Photos',
-                                                              style: GoogleFonts.poppins(
-                                                                fontWeight: FontWeight.w500,
-                                                                fontSize: 16,
-                                                                fontStyle: FontStyle.normal,
-                                                              ),
-                                                            ),
-                                                            Padding(
-                                                              padding: const EdgeInsets.all(18.0),
-                                                              child: SizedBox(
-                                                                height: 50,
-                                                                child: TextFormField(
-                                                                  onFieldSubmitted: (value) {
-                                                                    print(value);
-                                                                  },
-                                                                  keyboardType: TextInputType.number,
-                                                                  style: GoogleFonts.poppins(
-                                                                    color: Color(0xffa8a8a8),
-                                                                    fontWeight: FontWeight.w300,
-                                                                    fontSize: 16,
-                                                                    fontStyle: FontStyle.normal,
-                                                                  ),
-                                                                  decoration: InputDecoration(
-                                                                    hintStyle: GoogleFonts.poppins(
-                                                                      color: Color(0xffa8a8a8),
-                                                                      fontWeight: FontWeight.w300,
-                                                                      fontSize: 16,
-                                                                      fontStyle: FontStyle.normal,
-                                                                    ),
-                                                                    labelStyle: GoogleFonts.poppins(
-                                                                      color: Color(0xffa8a8a8),
-                                                                      fontWeight: FontWeight.w300,
-                                                                      fontSize: 16,
-                                                                      fontStyle: FontStyle.normal,
-                                                                    ),
-                                                                    filled: true,
-                                                                    fillColor: Color(0xffF1F4FF),
-                                                                    hintText: 'Received',
-                                                                    focusedBorder: OutlineInputBorder(
-                                                                      borderSide: BorderSide(
-                                                                        width: 2,
-                                                                        color: Color(0xff3b5fe0),
-                                                                      ),
-                                                                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                                                                    ),
-                                                                    border: OutlineInputBorder(
-                                                                      borderSide: BorderSide(
-                                                                        width: 2,
-                                                                        color: Color(0xffF1F4FF),
-                                                                      ),
-                                                                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                                                                    ),
-                                                                    labelText: 'Received Qty',
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            Padding(
-                                                              padding: EdgeInsets.only(top: 20),
-                                                              child: MaterialButton(
-                                                                onPressed: () {},
-                                                                child: Text(
-                                                                  'Add Shortage',
-                                                                  style: TextStyle(
-                                                                    fontSize: 15,
-                                                                    fontFamily: 'SFUIDisplay',
-                                                                    fontWeight: FontWeight.bold,
-                                                                    color: Colors.white,
-                                                                  ),
-                                                                ),
-                                                                color: Color(0xff12283d),
-                                                                elevation: 0,
-                                                                minWidth: 350,
-                                                                height: 60,
-                                                                shape: RoundedRectangleBorder(
-                                                                  borderRadius: BorderRadius.circular(10),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                },
-                                              ): Container(),
-                                            ),
-                                            TextButton.icon(
-                                              // <-- TextButton
-                                              onPressed: () {
-                                                createInvoice(context,orderNumber);
-                                              },
-                                              icon: Icon(
-                                                FluentIcons.drawer_arrow_download_24_regular,
-                                                size: 16.0,
-                                                color: Color(0xff12283D),
-                                              ),
-                                              label: Text(
-                                                'Invoice',
-                                                style: GoogleFonts.montserrat(
-                                                  fontWeight: FontWeight.w300,
-                                                  fontStyle: FontStyle.normal,
-                                                  color: Color(0xff12283D),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          );
-                        }).toList(),
-                      );
-                    }
-                  },
-                ),*/
               ],
             ),
           )),
         ),
-        /*
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: Color(0x8ca9a9a9),
-                blurRadius: 20,
-              ),
-            ],
-          ),
-          child: BottomNavigationBar(
-              currentIndex: _selectedIndex,
-              unselectedItemColor: Color(0xff8d8d8d),
-              unselectedLabelStyle:
-                  const TextStyle(color: Color(0xff8d8d8d), fontSize: 14),
-              unselectedFontSize: 14,
-              showUnselectedLabels: true,
-              showSelectedLabels: true,
-              selectedIconTheme: IconThemeData(
-                color: Color(0xff12283D),
-              ),
-              type: BottomNavigationBarType.shifting,
-              items: const <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
-                    icon: Icon(
-                      FluentIcons.home_32_regular,
-                      size: 20,
-                    ),
-                    label: 'Home',
-                    backgroundColor: Colors.white),
-                BottomNavigationBarItem(
-                    icon: Icon(
-                      FluentIcons.weather_sunny_16_regular,
-                      size: 20,
-                    ),
-                    label: 'Orders',
-                    backgroundColor: Colors.white),
-                BottomNavigationBarItem(
-                  icon: Icon(
-                    FluentIcons.inprivate_account_16_regular,
-                    size: 20,
-                  ),
-                  label: 'Profile',
-                  backgroundColor: Colors.white,
-                ),
-              ],
-              selectedItemColor: Color(0xff12283D),
-              iconSize: 40,
-              onTap: _onItemTapped,
-              elevation: 15),
-        ),
-        */
       );
     });
-  }
-
-  void _onItemTapped(int index,BuildContext context) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // if (_selectedIndex == 1) {
-    //   Navigator.push(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => Orders()),
-    //   );
-    // }
-    if (_selectedIndex == 0) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Home()),
-      );
-    }
-    if (_selectedIndex == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Profile()),
-      );
-    }
   }
 }

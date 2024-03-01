@@ -58,6 +58,9 @@ dependencies:
   file_picker: ^6.1.1
   toggle_switch: ^2.1.0
   open_file: ^3.3.2
+  google_maps_flutter: ^2.5.3
+  change_app_package_name: ^1.1.0
+font_awesome_flutter: ^10.7.0
 
 
 
