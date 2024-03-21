@@ -579,7 +579,9 @@ class _CreateOrderState extends State<Create_Order> {
                             Container(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                '${apiData[index]['indent_price']}',
+                                _site != "GC / Coco"
+                                    ? (double.parse(apiData[index]['indent_price'] ?? '0') - double.parse(sapi?[0]["freight_value"] ?? '0')).toStringAsFixed(2)
+                                    : '${apiData[index]['indent_price']}',
                                 style: TextStyle(fontSize: 13),
                               ),
                             ),
@@ -599,7 +601,9 @@ class _CreateOrderState extends State<Create_Order> {
                             Container(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                hsdtValues[index].toStringAsFixed(2),
+                                _site != "GC / Coco"
+                                    ? ((double.parse(apiData[index]['indent_price'] ?? '0') - double.parse(sapi?[0]["freight_value"] ?? '0') ) * selectedOptions[index]).toStringAsFixed(2)
+                                    : hsdtValues[index].toString(),
                                 style: TextStyle(fontSize: 13),
                               ),
                             ),
